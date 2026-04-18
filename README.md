@@ -1,5 +1,10 @@
 # NexShare
 
+## Badges
+
+[![Deploy to GitHub Pages](https://github.com/nexos20lv/NexShare/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/nexos20lv/NexShare/actions/workflows/deploy-pages.yml)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Online-2ea44f?logo=github)](https://btmpierre.me/NexShare/)
+
 NexShare est une web app de transfert P2P (WebRTC) avec code de partage, QR code et interface futuriste.
 
 ## Apercu
@@ -57,7 +62,7 @@ Option 2 (Python):
 3. Connecter le remote et pousser:
 
    git branch -M main
-   git remote add origin https://github.com/<votre-utilisateur>/<votre-repo>.git
+   git remote add origin https://github.com/nexos20lv/NexShare.git
    git push -u origin main
 
 ## Activer GitHub Pages (via Actions)
@@ -75,7 +80,7 @@ Dans GitHub:
 
 Le site sera disponible sur:
 
-https://<votre-utilisateur>.github.io/<votre-repo>/
+https://btmpierre.me/NexShare/
 
 ## Notes importantes
 
@@ -88,6 +93,17 @@ https://<votre-utilisateur>.github.io/<votre-repo>/
 - Relance de transfert simplifiee
 - Support meilleur pour sessions longues
 - Amelioration UX de reception mobile
+
+## Checklist release
+
+Avant de tagger une nouvelle version:
+
+1. Verifier le flux complet: envoi -> code -> scan QR -> reception -> telechargement.
+2. Tester desktop et mobile (au moins Chrome/Edge + Safari mobile).
+3. Verifier qu il n y a pas d erreur console bloquante.
+4. Mettre a jour le README si une fonctionnalite ou un comportement a change.
+5. Pousser sur `main` et verifier le workflow `Deploy to GitHub Pages`.
+6. Ouvrir le site deploye et valider un transfert reel entre 2 appareils.
 
 ## Licence
 
