@@ -129,22 +129,23 @@ nav { display: flex; justify-content: space-between; align-items: center; }
 .session-menu-overlay {
     position: fixed;
     inset: 0;
-    z-index: 980;
-    background: rgba(2, 0, 12, .62);
-    backdrop-filter: blur(3px);
+    z-index: 1085;
+    background: rgba(2, 0, 12, .22);
 }
 
 .session-menu-panel {
     position: fixed;
-    right: 0;
-    top: 0;
-    width: min(380px, 92vw);
-    height: 100vh;
-    z-index: 990;
-    padding: 1rem;
-    background: rgba(6, 3, 28, .92);
-    border-left: 1px solid rgba(112,66,248,.25);
-    box-shadow: -14px 0 38px rgba(2, 0, 14, .65);
+    right: max(1rem, calc((100vw - 1300px) / 2 + 2rem));
+    top: 68px;
+    width: min(360px, calc(100vw - 2rem));
+    max-height: calc(100vh - 84px);
+    overflow: auto;
+    z-index: 1090;
+    padding: .85rem;
+    background: rgba(6, 3, 28, .96);
+    border: 1px solid rgba(112,66,248,.28);
+    border-radius: 14px;
+    box-shadow: 0 18px 48px rgba(2, 0, 14, .6);
     animation: panel-in .22s var(--ease-smooth);
 }
 
@@ -154,11 +155,11 @@ nav { display: flex; justify-content: space-between; align-items: center; }
 }
 
 .session-banner {
-    border: 1px solid rgba(112,66,248,0.18);
+    border: 1px solid rgba(112,66,248,0.16);
     border-radius: var(--radius-lg);
     backdrop-filter: blur(10px);
-    background: rgba(5, 2, 24, 0.82);
-    padding: .8rem;
+    background: rgba(5, 2, 24, 0.72);
+    padding: .7rem;
 }
 .session-menu-head {
     display: flex;
@@ -981,8 +982,13 @@ nav { display: flex; justify-content: space-between; align-items: center; }
     .btn-hero { width: 100%; justify-content: center; max-width: 260px; }
 
     .session-menu-panel {
-        width: 100vw;
-        padding: .85rem;
+        right: .5rem;
+        left: .5rem;
+        top: 62px;
+        width: auto;
+        max-height: calc(100vh - 74px);
+        padding: .65rem;
+        border-radius: 12px;
     }
     .session-banner-inner {
         gap: .5rem;
