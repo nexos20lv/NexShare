@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <defs>
+    <linearGradient id="grad" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#7042f8"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <linearGradient id="bg-fill" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#7042f8" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.10"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Hexagon frame -->
+  <path d="M24 3 L41 13 L41 35 L24 45 L7 35 L7 13 Z"
+        fill="url(#bg-fill)"
+        stroke="url(#grad)"
+        stroke-width="1.8"/>
+
+  <!-- Letter N — same bold stroke rhythm as portfolio -->
+  <path d="M14 34 L14 14 L30 34 L30 14"
+        stroke="url(#grad)"
+        stroke-width="3"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+  <!-- Share accent dot — top-right -->
+  <circle cx="36" cy="12" r="3" fill="#06b6d4" opacity="0.9"/>
+  <circle cx="36" cy="12" r="5.5" fill="none" stroke="#06b6d4" stroke-width="1" opacity="0.35"/>
+</svg>

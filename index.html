@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>NexShare — Transfert P2P Instantané</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#7042f8">
+    <meta name="description" content="Transférez vos fichiers en P2P, sans compte, sans serveur. Chiffrement de bout en bout.">
+    <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- App styles -->
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- PeerJS — WebRTC signaling -->
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+    <!-- Local QR generator -->
+    <script src="js/qr-code.js"></script>
+</head>
+<body>
+
+<!-- Rotating star background -->
+<canvas id="star-canvas"></canvas>
+
+<!-- Toast notifications -->
+<div id="toast-container" class="toast-container"></div>
+
+<!-- ══ HEADER ══════════════════════════════════════════ -->
+<header>
+    <nav class="container">
+        <a href="#" class="logo">
+            <img src="assets/logo.svg" alt="NexShare logo" width="28" height="28">
+            NexShare
+        </a>
+        <div class="nav-badge">
+            <span class="live-dot"></span>
+            P2P · Chiffré E2E
+        </div>
+    </nav>
+</header>
+
+<main>
+
+<!-- ══ HERO ════════════════════════════════════════════ -->
+<section class="hero">
+    <div class="hero-content">
+        <div class="welcome-pill">
+            <span class="sparkle">✦</span>
+            Aucun compte · Aucun serveur · 100% P2P
+        </div>
+
+        <h1>
+            <span class="hero-line">Partagez des fichiers,</span>
+            <span class="glow-word">instantanément</span>
+        </h1>
+
+        <p>
+            Transfert direct de pair à pair via WebRTC.
+            Vos fichiers ne transitent jamais par nos serveurs —
+            chiffrement DTLS-SRTP de bout en bout.
+        </p>
+
+        <div class="hero-steps">
+            <div class="step"><span class="step-num">1</span> Déposez vos fichiers</div>
+            <span class="step-arrow">›</span>
+            <div class="step"><span class="step-num">2</span> Partagez le code</div>
+            <span class="step-arrow">›</span>
+            <div class="step"><span class="step-num">3</span> Transfert direct</div>
+        </div>
+
+        <a href="#transfer" class="btn-hero">
+            <i class="bi bi-send"></i>
+            Commencer
+        </a>
+    </div>
+</section>
+
+<!-- ══ TRANSFER ════════════════════════════════════════ -->
+<section class="transfer-section" id="transfer">
+    <div class="container">
+        <div class="transfer-grid">
+
+            <!-- ── Sender panel ────────────────────── -->
+            <div class="glass-card sender-card">
+                <div class="panel-title">
+                    <i class="bi bi-upload"></i>
+                    Envoyer des fichiers
+                </div>
+
+                <!-- Drop zone — input inside for click-anywhere support -->
+                <div id="drop-zone" class="drop-zone">
+                    <i class="bi bi-cloud-upload drop-icon"></i>
+                    <div class="drop-text">Glissez vos fichiers ici</div>
+                    <div class="drop-sub">Tous types · Taille illimitée (P2P direct)</div>
+                    <!-- label déclenche le file picker nativement, sans JS -->
+                    <label for="file-input" class="btn btn-primary browse-label">
+                        <i class="bi bi-folder2-open"></i> Parcourir
+                    </label>
+                    <input type="file" id="file-input" multiple>
+                </div>
+
+                <!-- File list -->
+                <div id="file-list" class="file-list hidden"></div>
+
+                <!-- Footer: count + actions -->
+                <div id="file-footer" class="file-list-footer hidden">
+                    <span id="file-count" class="file-count"></span>
+                    <div class="flex-gap">
+                        <button class="btn btn-danger" id="clear-btn">
+                            <i class="bi bi-trash3"></i> Vider
+                        </button>
+                        <button class="btn btn-primary" id="send-btn">
+                            <i class="bi bi-send"></i> Générer le code
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Share panel -->
+                <div id="share-panel" class="share-panel hidden">
+                    <div id="share-panel-body">
+                        <div class="code-block">
+                            <span class="code-label">Code de partage</span>
+                            <div class="code-value" id="share-code">------</div>
+                            <div class="code-actions">
+                                <button class="btn btn-primary" id="copy-link-btn">
+                                    <i class="bi bi-link-45deg"></i> Copier le lien
+                                </button>
+                                <button class="btn btn-secondary" id="copy-code-btn">
+                                    <i class="bi bi-copy"></i> Code seul
+                                </button>
+                            </div>
+                        </div>
+                        <div id="qr-container">
+                            <canvas id="qr-canvas"></canvas>
+                        </div>
+                        <div class="status-row">
+                            <div class="status-dot waiting" id="status-dot"></div>
+                            <span id="status-text">Initialisation…</span>
+                        </div>
+                        <div class="expiry-bar">
+                            <div class="expiry-fill" id="expiry-fill" style="width:100%"></div>
+                        </div>
+                        <div class="expiry-label" id="expiry-label">Expire dans 30:00</div>
+                    </div>
+                    <div id="share-panel-done" class="hidden"></div>
+                </div>
+
+                <div class="long-notice mt-md">
+                    <i class="bi bi-cloud-arrow-up"></i>
+                    <div>
+                        <strong>Stockage longue durée</strong> — Bientôt disponible.
+                        Le mode P2P nécessite que les deux appareils soient connectés simultanément.
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Receiver panel ───────────────────── -->
+            <div class="glass-card receiver-card">
+                <div class="panel-title">
+                    <i class="bi bi-download"></i>
+                    Recevoir des fichiers
+                </div>
+
+                <p class="text-muted" style="margin-bottom:1rem">
+                    Entrez le code partagé par l'expéditeur pour établir la connexion P2P directe.
+                </p>
+
+                <div class="code-input-wrap">
+                    <input
+                        type="text"
+                        id="code-input"
+                        class="code-input"
+                        placeholder="Ex : AB12CD"
+                        maxlength="6"
+                        autocomplete="off"
+                        spellcheck="false"
+                    >
+                    <button class="btn btn-primary" id="connect-btn">
+                        <i class="bi bi-plug"></i> Connecter
+                    </button>
+                </div>
+
+                <div id="recv-area"></div>
+
+                <div class="long-notice mt-md">
+                    <i class="bi bi-shield-lock"></i>
+                    <div>
+                        Connexion <strong>chiffrée DTLS-SRTP</strong> (standard WebRTC).
+                        Les fichiers transitent directement entre vos appareils.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- ══ PROGRESS OVERLAY ════════════════════════════════ -->
+<div id="progress-overlay" class="progress-overlay hidden">
+    <div class="progress-card glass-card">
+        <h3 id="progress-title">Transfert en cours…</h3>
+        <div class="progress-sub">Connexion établie</div>
+        <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="progress-bar"></div>
+        </div>
+        <div class="progress-stats">
+            <span class="progress-percent" id="progress-pct">0%</span>
+            <span id="progress-speed">0 B/s</span>
+            <span id="progress-eta">--:--</span>
+        </div>
+        <div class="progress-files-list" id="progress-files"></div>
+    </div>
+</div>
+
+<!-- ══ FEATURES ════════════════════════════════════════ -->
+<section class="features-section">
+    <div class="container">
+        <div class="section-label">Pourquoi NexShare</div>
+        <h2 class="section-title">Conçu pour la confidentialité</h2>
+        <p class="section-sub">Zéro compromis entre vitesse, sécurité et simplicité.</p>
+        <div class="features-grid">
+            <div class="feature-card glass-card">
+                <i class="bi bi-shield-lock feature-icon"></i>
+                <div class="feature-title">Chiffrement E2E</div>
+                <div class="feature-desc">DTLS-SRTP intégré à WebRTC — le même standard que les appels vidéo sécurisés.</div>
+            </div>
+            <div class="feature-card glass-card">
+                <i class="bi bi-diagram-3 feature-icon"></i>
+                <div class="feature-title">100% P2P</div>
+                <div class="feature-desc">Connexion directe entre appareils. Aucune copie intermédiaire sur un serveur.</div>
+            </div>
+            <div class="feature-card glass-card">
+                <i class="bi bi-person-x feature-icon"></i>
+                <div class="feature-title">Sans compte</div>
+                <div class="feature-desc">Aucune inscription, aucun email, aucun tracking, aucun historique.</div>
+            </div>
+            <div class="feature-card glass-card">
+                <i class="bi bi-clock-history feature-icon"></i>
+                <div class="feature-title">Éphémère</div>
+                <div class="feature-desc">Le code expire automatiquement après 30 minutes ou à la fin du transfert.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+</main>
+
+<!-- ══ FOOTER ══════════════════════════════════════════ -->
+<footer>
+    <div class="container">
+        <div class="footer-logo">NexShare</div>
+        <div class="footer-text">Transfert P2P · Chiffrement E2E · Aucun compte requis</div>
+    </div>
+</footer>
+
+<script src="js/particles.js"></script>
+<script src="js/transfer.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,19 @@
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Dependencies (if added later)
+node_modules/
+
+# Env
+.env
+.env.*
+
+# Editor
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
