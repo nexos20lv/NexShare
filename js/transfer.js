@@ -23,6 +23,7 @@ class NexTransfer extends EventTarget {
         this.files = []; this.receivedMeta = null;
         this.recvBuffers = []; this.recvReceived = [];
         this.recvTotalSize = 0; this.recvStartAt = 0;
+        this.pendingDownloadUrls = [];
         this._expiryTimer = null; this._expiryStart = null;
         this._transferDone = false;
         this.compatibilityMode = !!options.compatibilityMode;
@@ -249,9 +250,17 @@ class NexTransfer extends EventTarget {
             try {
                 const meta = this.receivedMeta[msg.index];
                 const blob = new Blob(this.recvBuffers[msg.index], { type: meta.fileType || 'application/octet-stream' });
-                this._download(blob, meta.name);
+                const autoDownload = this._shouldAutoDownload(meta);
+                const dl = this._download(blob, meta.name, autoDownload);
                 // Release per-file chunks immediately to avoid mobile memory spikes.
                 this.recvBuffers[msg.index] = [];
+                this._emit('file-ready', {
+                    index: msg.index,
+                    name: meta.name,
+                    size: meta.size,
+                    url: dl.url,
+                    autoDownloaded: dl.autoTriggered,
+                });
                 this._emit('file-done', { index: msg.index, name: meta.name });
             } catch (err) {
                 this._emit('error', { message: 'Échec de finalisation du fichier reçu (mémoire insuffisante).' });
@@ -265,12 +274,33 @@ class NexTransfer extends EventTarget {
     accept() { if (this.conn) this.conn.send({ type: 'accept' }); }
     reject()  { if (this.conn) this.conn.send({ type: 'reject' }); this.destroy(); }
 
-    _download(blob, name) {
+    _shouldAutoDownload(meta) {
+        const ua = navigator.userAgent || '';
+        const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+        const isVideo = !!(meta && meta.fileType && /^video\//i.test(meta.fileType));
+        const size = meta && typeof meta.size === 'number' ? meta.size : 0;
+        const heavy = size >= 20 * 1024 * 1024;
+        return !(isMobile && (isVideo || heavy));
+    }
+
+    _download(blob, name, autoTrigger) {
+        autoTrigger = autoTrigger !== false;
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = name;
-        document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 60000);
+        this.pendingDownloadUrls.push(url);
+
+        if (autoTrigger) {
+            const a = document.createElement('a');
+            a.href = url; a.download = name;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            setTimeout(() => this._revokeDownloadUrl(url), 120000);
+        }
+
+        return { url, autoTriggered: autoTrigger };
+    }
+
+    _revokeDownloadUrl(url) {
+        try { URL.revokeObjectURL(url); } catch (_) {}
+        this.pendingDownloadUrls = this.pendingDownloadUrls.filter(u => u !== url);
     }
 
     _startExpiry() {
@@ -307,6 +337,7 @@ class NexTransfer extends EventTarget {
 
     destroy() {
         this._clearExpiry();
+        (this.pendingDownloadUrls || []).forEach(url => this._revokeDownloadUrl(url));
         try { if (this.conn) this.conn.close(); } catch(_) {}
         try { if (this.peer) this.peer.destroy(); } catch(_) {}
         this.conn = null; this.peer = null;

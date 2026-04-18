@@ -34,37 +34,45 @@
 <!-- Toast notifications -->
 <div id="toast-container" class="toast-container"></div>
 
-<!-- Session banner -->
-<div id="session-banner" class="session-banner state-idle" role="status" aria-live="polite" aria-atomic="true">
-    <div class="container session-banner-inner">
-        <span id="session-badge" class="session-badge">Inactif</span>
-        <div class="session-meta">
-            <span id="session-text">Prêt à lancer un transfert.</span>
-            <span id="session-hint" class="session-hint">Choisissez Envoyer ou Recevoir.</span>
-        </div>
-        <div id="network-quality" class="network-quality quality-medium" aria-live="polite">
-            <span class="network-quality-label">Réseau: moyen</span>
-            <span class="network-bars" aria-hidden="true">
-                <i></i><i></i><i></i>
-            </span>
-            <button id="network-quality-info" class="network-quality-info hidden" type="button" aria-label="Pourquoi cette qualité réseau" title="Qualité réseau détectée automatiquement.">
-                <i class="bi bi-info-circle"></i>
+<div id="session-menu-overlay" class="session-menu-overlay hidden" aria-hidden="true"></div>
+<aside id="session-menu-panel" class="session-menu-panel hidden" aria-hidden="true">
+    <div id="session-banner" class="session-banner state-idle" role="status" aria-live="polite" aria-atomic="true">
+        <div class="session-menu-head">
+            <div class="session-menu-title">État de session</div>
+            <button id="session-menu-close" class="btn btn-secondary btn-compact" type="button" aria-label="Fermer le menu session">
+                <i class="bi bi-x-lg"></i>
             </button>
         </div>
-        <label class="compat-toggle" for="compat-mode-toggle" title="Réduit le débit pour améliorer la stabilité réseau">
-            <input id="compat-mode-toggle" type="checkbox" />
-            <span>Compatibilité</span>
-        </label>
-        <button id="reconnect-now-btn" class="btn btn-primary btn-compact hidden" type="button" aria-label="Reconnecter maintenant">
-            <i class="bi bi-arrow-repeat"></i>
-            Reconnecter maintenant
-        </button>
-        <button id="copy-diagnostics-btn" class="btn btn-secondary btn-compact" type="button" aria-label="Copier les diagnostics">
-            <i class="bi bi-clipboard-data"></i>
-                    <span class="diag-label">Diagnostics</span>
-        </button>
+        <div class="session-banner-inner">
+            <span id="session-badge" class="session-badge">Inactif</span>
+            <div class="session-meta">
+                <span id="session-text">Prêt à lancer un transfert.</span>
+                <span id="session-hint" class="session-hint">Choisissez Envoyer ou Recevoir.</span>
+            </div>
+            <div id="network-quality" class="network-quality quality-medium" aria-live="polite">
+                <span class="network-quality-label">Réseau: moyen</span>
+                <span class="network-bars" aria-hidden="true">
+                    <i></i><i></i><i></i>
+                </span>
+                <button id="network-quality-info" class="network-quality-info hidden" type="button" aria-label="Pourquoi cette qualité réseau" title="Qualité réseau détectée automatiquement.">
+                    <i class="bi bi-info-circle"></i>
+                </button>
+            </div>
+            <label class="compat-toggle" for="compat-mode-toggle" title="Réduit le débit pour améliorer la stabilité réseau">
+                <input id="compat-mode-toggle" type="checkbox" />
+                <span>Compatibilité</span>
+            </label>
+            <button id="reconnect-now-btn" class="btn btn-primary btn-compact hidden" type="button" aria-label="Reconnecter maintenant">
+                <i class="bi bi-arrow-repeat"></i>
+                Reconnecter maintenant
+            </button>
+            <button id="copy-diagnostics-btn" class="btn btn-secondary btn-compact" type="button" aria-label="Copier les diagnostics">
+                <i class="bi bi-clipboard-data"></i>
+                <span class="diag-label">Diagnostics</span>
+            </button>
+        </div>
     </div>
-</div>
+</aside>
 
 <div id="debug-panel" class="debug-panel hidden" aria-hidden="true">
     <div class="debug-card" role="dialog" aria-modal="true" aria-labelledby="debug-title">
@@ -98,9 +106,15 @@
             <img src="assets/logo.svg" alt="NexShare logo" width="28" height="28">
             NexShare
         </a>
-        <div class="nav-badge">
-            <span class="live-dot"></span>
-            P2P · Chiffré E2E
+        <div class="nav-right">
+            <div class="nav-badge">
+                <span class="live-dot"></span>
+                P2P · Chiffré E2E
+            </div>
+            <button id="session-menu-btn" class="btn btn-secondary btn-compact session-menu-btn" type="button" aria-label="Ouvrir le menu session">
+                <i class="bi bi-sliders"></i>
+                Session
+            </button>
         </div>
     </nav>
 </header>
@@ -207,6 +221,11 @@
                         <div class="status-row">
                             <div class="status-dot waiting" id="status-dot"></div>
                             <span id="status-text" aria-live="polite">Initialisation…</span>
+                        </div>
+                        <div id="send-transfer-stats" class="recv-inline-stats hidden" aria-live="polite">
+                            <span id="send-transfer-percent" class="recv-transfer-pill">0%</span>
+                            <span id="send-transfer-speed">0 B/s</span>
+                            <span id="send-transfer-eta">ETA --:--</span>
                         </div>
                         <div class="expiry-bar">
                             <div class="expiry-fill" id="expiry-fill" style="width:100%"></div>

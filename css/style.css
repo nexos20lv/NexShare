@@ -115,20 +115,68 @@ header.scrolled {
 }
 nav { display: flex; justify-content: space-between; align-items: center; }
 
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+}
+
+.session-menu-btn {
+    border-color: rgba(112,66,248,.35);
+    background: rgba(112,66,248,.1);
+}
+
+.session-menu-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 980;
+    background: rgba(2, 0, 12, .62);
+    backdrop-filter: blur(3px);
+}
+
+.session-menu-panel {
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: min(380px, 92vw);
+    height: 100vh;
+    z-index: 990;
+    padding: 1rem;
+    background: rgba(6, 3, 28, .92);
+    border-left: 1px solid rgba(112,66,248,.25);
+    box-shadow: -14px 0 38px rgba(2, 0, 14, .65);
+    animation: panel-in .22s var(--ease-smooth);
+}
+
+@keyframes panel-in {
+    from { opacity: 0; transform: translateX(16px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
 .session-banner {
-    position: sticky;
-    top: 72px;
-    z-index: 950;
-    border-top: 1px solid rgba(112,66,248,0.15);
-    border-bottom: 1px solid rgba(112,66,248,0.15);
+    border: 1px solid rgba(112,66,248,0.18);
+    border-radius: var(--radius-lg);
     backdrop-filter: blur(10px);
-    background: rgba(5, 2, 24, 0.75);
+    background: rgba(5, 2, 24, 0.82);
+    padding: .8rem;
+}
+.session-menu-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: .7rem;
+}
+.session-menu-title {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: .95rem;
 }
 .session-banner-inner {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
+    flex-direction: column;
     gap: .8rem;
-    padding: .45rem 0;
+    padding: .2rem 0;
 }
 .network-quality {
     display: inline-flex;
@@ -218,10 +266,11 @@ nav { display: flex; justify-content: space-between; align-items: center; }
 }
 .session-meta {
     display: flex;
-    align-items: baseline;
-    gap: .6rem;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: .22rem;
     min-width: 0;
-    flex: 1;
+    width: 100%;
     font-size: .78rem;
 }
 .session-hint {
@@ -931,22 +980,19 @@ nav { display: flex; justify-content: space-between; align-items: center; }
     .step-arrow { display: none; }
     .btn-hero { width: 100%; justify-content: center; max-width: 260px; }
 
-    .session-banner {
-        top: 56px;
+    .session-menu-panel {
+        width: 100vw;
+        padding: .85rem;
     }
     .session-banner-inner {
-        flex-wrap: wrap;
-        gap: .35rem;
-        padding: .3rem 0;
+        gap: .5rem;
+        padding: .2rem 0;
     }
     .session-badge {
         font-size: .66rem;
         padding: .18rem .45rem;
     }
     .session-meta {
-        width: 100%;
-        flex-direction: row;
-        gap: .25rem;
         font-size: .7rem;
     }
     #session-text {
@@ -956,10 +1002,10 @@ nav { display: flex; justify-content: space-between; align-items: center; }
         max-width: 100%;
     }
     .session-hint {
-        display: none;
+        white-space: normal;
     }
     .session-banner .btn-compact {
-        width: auto;
+        width: 100%;
         justify-content: center;
         padding: .34rem .58rem;
         font-size: .68rem;
@@ -967,8 +1013,8 @@ nav { display: flex; justify-content: space-between; align-items: center; }
     }
     .network-quality,
     .compat-toggle {
-        width: calc(50% - .25rem);
-        justify-content: center;
+        width: 100%;
+        justify-content: space-between;
     }
     .network-quality {
         gap: .35rem;
@@ -978,24 +1024,16 @@ nav { display: flex; justify-content: space-between; align-items: center; }
         font-size: .64rem;
     }
     .compat-toggle {
-        display: none;
-    }
-    #copy-diagnostics-btn {
-        margin-left: auto;
-        min-width: 34px;
-        width: 34px;
-        padding: .34rem;
-    }
-    #copy-diagnostics-btn .diag-label {
-        display: none;
-    }
-    #copy-diagnostics-btn i {
-        margin: 0;
+        display: inline-flex;
     }
     #reconnect-now-btn {
         width: 100%;
         justify-content: center;
         margin-top: .15rem;
+    }
+
+    .nav-right .nav-badge {
+        display: none;
     }
 
     .transfer-section { padding: 2.5rem 0 4.5rem; }
@@ -1103,6 +1141,18 @@ nav { display: flex; justify-content: space-between; align-items: center; }
 .incoming-file-list { display: flex; flex-direction: column; gap: .35rem; margin-bottom: .75rem; }
 .incoming-total { font-size: .73rem; color: var(--text-muted); padding-top: .5rem; border-top: 1px solid rgba(255,255,255,.06); margin-bottom: .75rem; }
 .incoming-actions { display: flex; gap: .5rem; }
+
+.manual-dl-list {
+    margin-top: .9rem;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}
+
+.manual-dl-link {
+    justify-content: center;
+    width: 100%;
+}
 
 /* ── Progress Overlay ── */
 .progress-overlay {

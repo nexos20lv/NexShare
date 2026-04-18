@@ -69,6 +69,10 @@ var networkQualityLabel = networkQuality ? networkQuality.querySelector('.networ
 var networkQualityInfo = document.getElementById('network-quality-info');
 var compatToggle = document.getElementById('compat-mode-toggle');
 var reconnectNowBtn = document.getElementById('reconnect-now-btn');
+var sessionMenuBtn = document.getElementById('session-menu-btn');
+var sessionMenuClose = document.getElementById('session-menu-close');
+var sessionMenuPanel = document.getElementById('session-menu-panel');
+var sessionMenuOverlay = document.getElementById('session-menu-overlay');
 var debugPanel = document.getElementById('debug-panel');
 var debugClose = document.getElementById('debug-close');
 var debugSummary = document.getElementById('debug-summary');
@@ -215,6 +219,22 @@ function closeDebugPanel() {
     debugPanel.setAttribute('aria-hidden', 'true');
 }
 
+function openSessionMenu() {
+    if (!sessionMenuPanel || !sessionMenuOverlay) return;
+    sessionMenuPanel.classList.remove('hidden');
+    sessionMenuOverlay.classList.remove('hidden');
+    sessionMenuPanel.setAttribute('aria-hidden', 'false');
+    sessionMenuOverlay.setAttribute('aria-hidden', 'false');
+}
+
+function closeSessionMenu() {
+    if (!sessionMenuPanel || !sessionMenuOverlay) return;
+    sessionMenuPanel.classList.add('hidden');
+    sessionMenuOverlay.classList.add('hidden');
+    sessionMenuPanel.setAttribute('aria-hidden', 'true');
+    sessionMenuOverlay.setAttribute('aria-hidden', 'true');
+}
+
 function setSessionBanner(state, badge, text, hint) {
     if (!sessionBanner) return;
     sessionBanner.className = 'session-banner state-' + state;
@@ -224,6 +244,9 @@ function setSessionBanner(state, badge, text, hint) {
 }
 
 if (copyDiagBtn) copyDiagBtn.addEventListener('click', openDebugPanel);
+if (sessionMenuBtn) sessionMenuBtn.addEventListener('click', openSessionMenu);
+if (sessionMenuClose) sessionMenuClose.addEventListener('click', closeSessionMenu);
+if (sessionMenuOverlay) sessionMenuOverlay.addEventListener('click', closeSessionMenu);
 if (debugClose) debugClose.addEventListener('click', closeDebugPanel);
 if (debugPanel) {
     debugPanel.addEventListener('click', function(e) {
@@ -232,6 +255,7 @@ if (debugPanel) {
 }
 window.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closeDebugPanel();
+    if (e.key === 'Escape') closeSessionMenu();
 });
 if (debugCopy) {
     debugCopy.addEventListener('click', function() {
@@ -328,6 +352,10 @@ var sharePanelBody = document.getElementById('share-panel-body');
 var sharePanelDone = document.getElementById('share-panel-done');
 var senderCard = document.querySelector('.sender-card');
 var senderFingerprint = document.getElementById('session-fingerprint');
+var sendTransferStats = document.getElementById('send-transfer-stats');
+var sendTransferPercent = document.getElementById('send-transfer-percent');
+var sendTransferSpeed = document.getElementById('send-transfer-speed');
+var sendTransferEta = document.getElementById('send-transfer-eta');
 var recvFingerprint = document.getElementById('recv-fingerprint');
 var transferSection = document.querySelector('.transfer-section');
 var tabSend = document.getElementById('tab-send');
@@ -353,6 +381,22 @@ function clearReceiverAutoReset() {
         clearTimeout(recvAutoResetTimer);
         recvAutoResetTimer = null;
     }
+}
+
+function resetSenderTransferStats() {
+    if (!sendTransferStats) return;
+    sendTransferStats.classList.add('hidden');
+    if (sendTransferPercent) sendTransferPercent.textContent = '0%';
+    if (sendTransferSpeed) sendTransferSpeed.textContent = '0 B/s';
+    if (sendTransferEta) sendTransferEta.textContent = 'ETA --:--';
+}
+
+function updateSenderTransferStats(d) {
+    if (!sendTransferStats) return;
+    sendTransferStats.classList.remove('hidden');
+    if (sendTransferPercent) sendTransferPercent.textContent = (d.percent || 0) + '%';
+    if (sendTransferSpeed) sendTransferSpeed.textContent = NexTransfer.formatBytes(d.speed || 0) + '/s';
+    if (sendTransferEta) sendTransferEta.textContent = 'ETA ' + NexTransfer.formatTime(d.remaining);
 }
 
 /* Drag & drop */
@@ -460,6 +504,7 @@ fileListEl.addEventListener('click', function(e) {
 
 clearBtn.addEventListener('click', function() {
     clearSenderAutoReset();
+    resetSenderTransferStats();
     selectedFiles = [];
     if (senderXfer) { senderXfer.destroy(); senderXfer = null; }
     senderCard.classList.remove('transfer-mode');
@@ -486,6 +531,7 @@ function buildSender(files) {
 
     xfer.addEventListener('code', function(e) {
         var code = e.detail.code;
+        resetSenderTransferStats();
         sharePanelDone.classList.add('hidden');
         sharePanelBody.classList.remove('hidden');
         document.getElementById('share-code').textContent = code;
@@ -534,12 +580,18 @@ function buildSender(files) {
         senderCard.classList.add('transfer-mode');
         setStatus('transfer', 'Transfert en cours…');
         setSessionBanner('transfer', 'Transfert', 'Envoi en cours…', 'Gardez les deux appareils actifs.');
-        openProgress('Envoi en cours…', files.map(function(f) { return { name: f.name, size: f.size }; }));
+        updateSenderTransferStats({ percent: 0, speed: 0, remaining: 0 });
+        if (window.matchMedia('(min-width: 769px)').matches) {
+            openProgress('Envoi en cours…', files.map(function(f) { return { name: f.name, size: f.size }; }));
+        }
     });
 
     xfer.addEventListener('file-start', function(e) { markPF(e.detail.index, 'active'); });
     xfer.addEventListener('file-done',  function(e) { markPF(e.detail.index, 'done'); });
-    xfer.addEventListener('progress',   function(e) { updateProgress(e.detail); });
+    xfer.addEventListener('progress',   function(e) {
+        updateProgress(e.detail);
+        updateSenderTransferStats(e.detail);
+    });
 
     xfer.addEventListener('complete', function() {
         closeProgress();
@@ -560,6 +612,7 @@ function buildSender(files) {
             clearSenderAutoReset();
             selectedFiles = [];
             renderFileList();
+            resetSenderTransferStats();
             senderCard.classList.remove('transfer-mode');
             sharePanel.classList.add('hidden');
             sharePanelBody.classList.remove('hidden');
@@ -582,6 +635,7 @@ function buildSender(files) {
 
     xfer.addEventListener('expired', function() {
         clearSenderAutoReset();
+        resetSenderTransferStats();
         toast('Session expirée (30 min). Regénérez un code.', 'error', 6000);
         senderCard.classList.remove('transfer-mode');
         senderCard.setAttribute('aria-busy', 'false');
@@ -597,6 +651,7 @@ function buildSender(files) {
     });
 
     xfer.addEventListener('error', function(e) {
+        resetSenderTransferStats();
         toast(e.detail.message, 'error', 6000);
         setSessionBanner('error', 'Erreur', e.detail.message, 'Consultez les diagnostics si le problème persiste.');
         pushDiag('error', 'sender-error', { message: e.detail.message });
@@ -627,6 +682,7 @@ var recvTransferPercent = document.getElementById('recv-transfer-percent');
 var recvTransferSpeed = document.getElementById('recv-transfer-speed');
 var recvTransferEta = document.getElementById('recv-transfer-eta');
 var recvXfer   = null;
+var receiverPendingDownloads = [];
 
 function resetReceiverTransferStats() {
     if (!recvTransferStats) return;
@@ -662,6 +718,7 @@ function startReceiver() {
     if (raw.length !== 6) { toast('Le code doit contenir 6 caractères.', 'error'); return; }
     clearReceiverAutoReset();
     resetReceiverTransferStats();
+    receiverPendingDownloads = [];
     lastReceiverCode = raw;
     if (recvReconnectTimer) {
         clearTimeout(recvReconnectTimer);
@@ -793,6 +850,21 @@ function buildReceiver() {
         pushDiag('info', 'receiver-network-profile', profile);
     });
 
+    xfer.addEventListener('file-ready', function(e) {
+        var info = e.detail || {};
+        if (!info.autoDownloaded && info.url) {
+            receiverPendingDownloads.push({
+                name: info.name || 'fichier',
+                url: info.url,
+                size: info.size || 0,
+            });
+            pushDiag('warn', 'receiver-manual-download-required', {
+                name: info.name,
+                size: info.size || 0,
+            });
+        }
+    });
+
     xfer.addEventListener('file-start', function(e) { markPF(e.detail.index, 'active'); });
     xfer.addEventListener('file-done',  function(e) { markPF(e.detail.index, 'done'); });
     xfer.addEventListener('progress',   function(e) {
@@ -817,7 +889,8 @@ function buildReceiver() {
         }
         recvReconnectAttempts = 0;
         showReconnectNowButton(null);
-        setSessionBanner('connected', 'Terminé', 'Réception terminée.', 'Les téléchargements ont démarré.');
+        var manualMode = receiverPendingDownloads.length > 0;
+        setSessionBanner('connected', 'Terminé', manualMode ? 'Réception terminée.' : 'Réception terminée.', manualMode ? 'Touchez pour télécharger les fichiers.' : 'Les téléchargements ont démarré.');
         pushDiag('info', 'receiver-complete');
 
         var doneHandled = false;
@@ -829,8 +902,29 @@ function buildReceiver() {
             resetReceiverTransferStats();
             codeInput.value = '';
             if (recvXfer) { recvXfer.destroy(); recvXfer = null; }
+            receiverPendingDownloads = [];
             updateFingerprints('');
             setSessionBanner('idle', 'Inactif', 'Aucun transfert actif.', 'Entrez un code pour recevoir des fichiers.');
+        }
+
+        if (manualMode) {
+            var linksHtml = receiverPendingDownloads.map(function(file, idx) {
+                return '<a class="btn btn-secondary manual-dl-link" href="' + esc(file.url) + '" download="' + esc(file.name) + '" data-i="' + idx + '"><i class="bi bi-download"></i> ' + esc(file.name) + ' · ' + NexTransfer.formatBytes(file.size) + '</a>';
+            }).join('');
+
+            showRecvUI(
+                '<div style="text-align:center;padding:.5rem 0">' +
+                    '<i class="bi bi-check-circle-fill done-icon"></i>' +
+                    '<div class="done-title">Fichiers prêts</div>' +
+                    '<div class="done-sub">Le navigateur mobile a désactivé le téléchargement automatique. Touchez chaque fichier ci-dessous.</div>' +
+                    '<div class="manual-dl-list">' + linksHtml + '</div>' +
+                    '<button class="btn btn-secondary mt-sm" id="recv-done-reset"><i class="bi bi-arrow-clockwise"></i> Terminer</button>' +
+                '</div>'
+            );
+
+            var resetBtn = document.getElementById('recv-done-reset');
+            if (resetBtn) resetBtn.addEventListener('click', resetReceiverAfterDone);
+            return;
         }
 
         showRecvUI(doneBanner('Fichiers reçus !', 'Les téléchargements ont démarré.', function() {
