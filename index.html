@@ -61,7 +61,7 @@
         </button>
         <button id="copy-diagnostics-btn" class="btn btn-secondary btn-compact" type="button" aria-label="Copier les diagnostics">
             <i class="bi bi-clipboard-data"></i>
-            Diagnostics
+                    <span class="diag-label">Diagnostics</span>
         </button>
     </div>
 </div>
@@ -251,6 +251,12 @@
                     </button>
                 </div>
                 <div id="recv-fingerprint" class="session-proof hidden" aria-live="polite">Empreinte session: ---- ----</div>
+
+                <div id="recv-transfer-stats" class="recv-transfer-stats hidden" aria-live="polite">
+                    <span id="recv-transfer-percent" class="recv-transfer-pill">0%</span>
+                    <span id="recv-transfer-speed">0 B/s</span>
+                    <span id="recv-transfer-eta">ETA --:--</span>
+                </div>
 
                 <div id="recv-area"></div>
 

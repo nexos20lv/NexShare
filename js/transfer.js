@@ -22,6 +22,7 @@ class NexTransfer extends EventTarget {
         this.peer = null; this.conn = null; this.role = null;
         this.files = []; this.receivedMeta = null;
         this.recvBuffers = []; this.recvReceived = [];
+        this.recvTotalSize = 0; this.recvStartAt = 0;
         this._expiryTimer = null; this._expiryStart = null;
         this._transferDone = false;
         this.compatibilityMode = !!options.compatibilityMode;
@@ -223,25 +224,38 @@ class NexTransfer extends EventTarget {
             this.receivedMeta = msg.files;
             this.recvBuffers  = msg.files.map(() => []);
             this.recvReceived = msg.files.map(() => 0);
+            this.recvTotalSize = msg.totalSize || msg.files.reduce((a, f) => a + (f.size || 0), 0);
+            this.recvStartAt = 0;
             this._emit('incoming', { files: msg.files, totalSize: msg.totalSize });
         } else if (msg.type === 'file-start') {
             this._emit('file-start', { index: msg.index, name: msg.name, size: msg.size });
         } else if (msg.type === 'chunk') {
             const { index, chunkIndex, data } = msg;
+            if (!this.recvStartAt) this.recvStartAt = Date.now();
             this.recvBuffers[index][chunkIndex] = data;
             this.recvReceived[index] += data.byteLength;
             const totalReceived = this.recvReceived.reduce((a, b) => a + b, 0);
-            const totalSize     = this.receivedMeta.reduce((a, f) => a + f.size, 0);
+            const totalSize     = this.recvTotalSize || this.receivedMeta.reduce((a, f) => a + f.size, 0);
+            const elapsed       = Math.max(0.001, (Date.now() - this.recvStartAt) / 1000);
+            const speed         = totalReceived / elapsed;
             this._emit('progress', {
                 sent: totalReceived, total: totalSize,
                 percent: Math.round(totalReceived / totalSize * 100),
+                speed,
+                remaining: Math.max(0, totalSize - totalReceived) / Math.max(speed, 1),
                 fileIndex: index, fileName: this.receivedMeta[index] && this.receivedMeta[index].name,
             });
         } else if (msg.type === 'file-end') {
-            const meta = this.receivedMeta[msg.index];
-            const blob = new Blob(this.recvBuffers[msg.index], { type: meta.fileType || 'application/octet-stream' });
-            this._download(blob, meta.name);
-            this._emit('file-done', { index: msg.index, name: meta.name });
+            try {
+                const meta = this.receivedMeta[msg.index];
+                const blob = new Blob(this.recvBuffers[msg.index], { type: meta.fileType || 'application/octet-stream' });
+                this._download(blob, meta.name);
+                // Release per-file chunks immediately to avoid mobile memory spikes.
+                this.recvBuffers[msg.index] = [];
+                this._emit('file-done', { index: msg.index, name: meta.name });
+            } catch (err) {
+                this._emit('error', { message: 'Échec de finalisation du fichier reçu (mémoire insuffisante).' });
+            }
         } else if (msg.type === 'done') {
             this._transferDone = true;
             this._emit('complete', { role: 'receiver' });

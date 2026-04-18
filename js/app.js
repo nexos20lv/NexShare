@@ -622,7 +622,34 @@ document.getElementById('copy-code-btn').addEventListener('click', function() {
 var codeInput  = document.getElementById('code-input');
 var connectBtn = document.getElementById('connect-btn');
 var recvArea   = document.getElementById('recv-area');
+var recvTransferStats = document.getElementById('recv-transfer-stats');
+var recvTransferPercent = document.getElementById('recv-transfer-percent');
+var recvTransferSpeed = document.getElementById('recv-transfer-speed');
+var recvTransferEta = document.getElementById('recv-transfer-eta');
 var recvXfer   = null;
+
+function resetReceiverTransferStats() {
+    if (!recvTransferStats) return;
+    recvTransferStats.classList.add('hidden');
+    if (recvTransferPercent) recvTransferPercent.textContent = '0%';
+    if (recvTransferSpeed) recvTransferSpeed.textContent = '0 B/s';
+    if (recvTransferEta) recvTransferEta.textContent = 'ETA --:--';
+}
+
+function showReceiverTransferStats() {
+    if (!recvTransferStats) return;
+    recvTransferStats.classList.remove('hidden');
+}
+
+function updateReceiverTransferStats(d) {
+    if (!recvTransferStats) return;
+    showReceiverTransferStats();
+    if (recvTransferPercent) recvTransferPercent.textContent = (d.percent || 0) + '%';
+    if (recvTransferSpeed) recvTransferSpeed.textContent = NexTransfer.formatBytes(d.speed || 0) + '/s';
+    if (recvTransferEta) recvTransferEta.textContent = 'ETA ' + NexTransfer.formatTime(d.remaining);
+}
+
+resetReceiverTransferStats();
 
 connectBtn.addEventListener('click', startReceiver);
 codeInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') startReceiver(); });
@@ -634,6 +661,7 @@ function startReceiver() {
     var raw = codeInput.value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
     if (raw.length !== 6) { toast('Le code doit contenir 6 caractères.', 'error'); return; }
     clearReceiverAutoReset();
+    resetReceiverTransferStats();
     lastReceiverCode = raw;
     if (recvReconnectTimer) {
         clearTimeout(recvReconnectTimer);
@@ -677,11 +705,38 @@ function buildReceiver() {
 
         document.getElementById('accept-btn').addEventListener('click', function() {
             xfer.accept();
+            showReceiverTransferStats();
+            updateReceiverTransferStats({ percent: 0, speed: 0, remaining: 0 });
+
+            var transferListHtml = files.map(function(f) {
+                return '<div class="file-item">' +
+                    '<i class="bi ' + fileIcon(f.name) + ' file-icon"></i>' +
+                    '<div class="file-info">' +
+                        '<div class="file-name">' + esc(f.name) + '</div>' +
+                        '<div class="file-size">' + NexTransfer.formatBytes(f.size) + '</div>' +
+                    '</div></div>';
+            }).join('');
+
+            showRecvUI(
+                '<div class="incoming-label">Réception en cours</div>' +
+                '<div class="file-list" style="max-height:200px">' + transferListHtml + '</div>' +
+                '<div class="incoming-total">' + files.length + ' fichier' + (files.length > 1 ? 's' : '') + ' · ' + NexTransfer.formatBytes(totalSize) + '</div>' +
+                '<div class="recv-inline-stats" aria-live="polite">' +
+                    '<span id="recv-popup-percent" class="recv-transfer-pill">0%</span>' +
+                    '<span id="recv-popup-speed">0 B/s</span>' +
+                    '<span id="recv-popup-eta">ETA --:--</span>' +
+                '</div>'
+            );
+
             setSessionBanner('transfer', 'Réception', 'Réception en cours…', 'Laissez la page ouverte jusqu à la fin.');
-            openProgress('Réception en cours…', files);
+            if (window.matchMedia('(min-width: 769px)').matches) {
+                openProgress('Réception en cours…', files);
+            }
         });
         document.getElementById('decline-btn').addEventListener('click', function() {
-            xfer.reject(); showRecvUI(''); recvXfer = null;
+            xfer.reject(); showRecvUI('');
+            if (recvXfer) { recvXfer.destroy(); recvXfer = null; }
+            resetReceiverTransferStats();
             toast('Transfert refusé.', 'info');
             setSessionBanner('idle', 'Inactif', 'Transfert refusé.', 'Vous pouvez entrer un autre code.');
         });
@@ -740,7 +795,17 @@ function buildReceiver() {
 
     xfer.addEventListener('file-start', function(e) { markPF(e.detail.index, 'active'); });
     xfer.addEventListener('file-done',  function(e) { markPF(e.detail.index, 'done'); });
-    xfer.addEventListener('progress',   function(e) { updateProgress(e.detail); });
+    xfer.addEventListener('progress',   function(e) {
+        updateProgress(e.detail);
+        updateReceiverTransferStats(e.detail);
+
+        var recvPopupPercent = document.getElementById('recv-popup-percent');
+        var recvPopupSpeed = document.getElementById('recv-popup-speed');
+        var recvPopupEta = document.getElementById('recv-popup-eta');
+        if (recvPopupPercent) recvPopupPercent.textContent = (e.detail.percent || 0) + '%';
+        if (recvPopupSpeed) recvPopupSpeed.textContent = NexTransfer.formatBytes(e.detail.speed || 0) + '/s';
+        if (recvPopupEta) recvPopupEta.textContent = 'ETA ' + NexTransfer.formatTime(e.detail.remaining);
+    });
 
     xfer.addEventListener('complete', function() {
         closeProgress();
@@ -761,8 +826,9 @@ function buildReceiver() {
             doneHandled = true;
             clearReceiverAutoReset();
             showRecvUI('');
+            resetReceiverTransferStats();
             codeInput.value = '';
-            recvXfer = null;
+            if (recvXfer) { recvXfer.destroy(); recvXfer = null; }
             updateFingerprints('');
             setSessionBanner('idle', 'Inactif', 'Aucun transfert actif.', 'Entrez un code pour recevoir des fichiers.');
         }
@@ -779,7 +845,9 @@ function buildReceiver() {
     xfer.addEventListener('error', function(e) {
         clearReceiverAutoReset();
         toast(e.detail.message, 'error', 6000);
-        showRecvUI(''); recvXfer = null;
+        showRecvUI('');
+        resetReceiverTransferStats();
+        if (recvXfer) { recvXfer.destroy(); recvXfer = null; }
         setSessionBanner('error', 'Erreur', e.detail.message, 'Vérifiez le code puis réessayez.');
         showReconnectNowButton(null);
         pushDiag('error', 'receiver-error', { message: e.detail.message });

@@ -231,6 +231,35 @@ nav { display: flex; justify-content: space-between; align-items: center; }
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+.recv-transfer-stats {
+    margin-top: .75rem;
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    flex-wrap: wrap;
+    font-size: .72rem;
+    color: var(--text-muted);
+}
+
+.recv-transfer-pill {
+    padding: .16rem .5rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid rgba(6,182,212,.35);
+    color: #7ee5ff;
+    background: rgba(6,182,212,.1);
+    font-weight: 700;
+}
+
+.recv-inline-stats {
+    margin-top: .5rem;
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    flex-wrap: wrap;
+    font-size: .72rem;
+    color: var(--text-muted);
+}
 .session-banner.state-transfer .session-badge {
     color: #7ee5ff;
     border-color: rgba(6,182,212,0.45);
@@ -903,30 +932,70 @@ nav { display: flex; justify-content: space-between; align-items: center; }
     .btn-hero { width: 100%; justify-content: center; max-width: 260px; }
 
     .session-banner {
-        top: 58px;
+        top: 56px;
     }
     .session-banner-inner {
         flex-wrap: wrap;
-        gap: .5rem;
-        padding: .4rem 0;
+        gap: .35rem;
+        padding: .3rem 0;
+    }
+    .session-badge {
+        font-size: .66rem;
+        padding: .18rem .45rem;
     }
     .session-meta {
         width: 100%;
-        flex-direction: column;
-        gap: .12rem;
-        font-size: .74rem;
+        flex-direction: row;
+        gap: .25rem;
+        font-size: .7rem;
+    }
+    #session-text {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
     }
     .session-hint {
-        white-space: normal;
+        display: none;
     }
-    .btn-compact {
-        width: 100%;
+    .session-banner .btn-compact {
+        width: auto;
         justify-content: center;
+        padding: .34rem .58rem;
+        font-size: .68rem;
+        min-height: 30px;
     }
     .network-quality,
     .compat-toggle {
         width: calc(50% - .25rem);
         justify-content: center;
+    }
+    .network-quality {
+        gap: .35rem;
+        padding: .2rem .45rem;
+    }
+    .network-quality-label {
+        font-size: .64rem;
+    }
+    .compat-toggle {
+        display: none;
+    }
+    #copy-diagnostics-btn {
+        margin-left: auto;
+        min-width: 34px;
+        width: 34px;
+        padding: .34rem;
+    }
+    #copy-diagnostics-btn .diag-label {
+        display: none;
+    }
+    #copy-diagnostics-btn i {
+        margin: 0;
+    }
+    #reconnect-now-btn {
+        width: 100%;
+        justify-content: center;
+        margin-top: .15rem;
     }
 
     .transfer-section { padding: 2.5rem 0 4.5rem; }
@@ -948,6 +1017,14 @@ nav { display: flex; justify-content: space-between; align-items: center; }
     .code-input-wrap { flex-direction: column; }
     .code-input { width: 100%; }
     .code-input-wrap .btn { width: 100%; justify-content: center; }
+    .recv-transfer-stats {
+        font-size: .68rem;
+        gap: .45rem;
+    }
+    .recv-inline-stats {
+        font-size: .68rem;
+        gap: .45rem;
+    }
 
     .share-panel {
         margin-top: 1rem;
