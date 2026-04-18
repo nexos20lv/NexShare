@@ -1,0 +1,19 @@
+{
+  "name": "NexShare",
+  "short_name": "NexShare",
+  "description": "Transfert de fichiers P2P instantané et chiffré.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#030014",
+  "theme_color": "#7042f8",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "assets/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

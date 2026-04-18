@@ -1,7 +1,7 @@
 /* NexShare Transfer Engine — WebRTC P2P via PeerJS */
 
-const CHUNK_SIZE  = 65536;
-const MAX_BUFFER  = 4 * 1024 * 1024;
+const DEFAULT_CHUNK_SIZE = 65536;
+const DEFAULT_MAX_BUFFER = 4 * 1024 * 1024;
 const CODE_CHARS  = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const PEER_PREFIX = 'nxs-';
 const EXPIRY_MS   = 30 * 60 * 1000;
@@ -16,13 +16,62 @@ const BLOCKED_TYPES = new Set([
 ]);
 
 class NexTransfer extends EventTarget {
-    constructor() {
+    constructor(options) {
         super();
+        options = options || {};
         this.peer = null; this.conn = null; this.role = null;
         this.files = []; this.receivedMeta = null;
         this.recvBuffers = []; this.recvReceived = [];
         this._expiryTimer = null; this._expiryStart = null;
         this._transferDone = false;
+        this.compatibilityMode = !!options.compatibilityMode;
+        this.chunkSize = this.compatibilityMode ? 16384 : NexTransfer.recommendedChunkSize();
+        this.maxBuffer = this.compatibilityMode ? 512 * 1024 : NexTransfer.recommendedMaxBuffer();
+        this.networkProfile = NexTransfer.buildNetworkProfile(this.chunkSize, this.maxBuffer, this.compatibilityMode);
+    }
+
+    static buildNetworkProfile(chunkSize, maxBuffer, compatibilityMode) {
+        const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        const downlink = conn && typeof conn.downlink === 'number' ? conn.downlink : 0;
+        const saveData = !!(conn && conn.saveData);
+        const effectiveType = conn && conn.effectiveType ? conn.effectiveType : 'unknown';
+        const memory = typeof navigator.deviceMemory === 'number' ? navigator.deviceMemory : 4;
+
+        let quality = 'medium';
+        if (compatibilityMode || saveData || (downlink > 0 && downlink < 2) || /2g/.test(effectiveType) || memory <= 2) quality = 'low';
+        else if (downlink >= 8 && /4g|5g/.test(effectiveType) && memory >= 4) quality = 'good';
+
+        return {
+            chunkSize,
+            maxBuffer,
+            compatibilityMode,
+            downlink,
+            effectiveType,
+            saveData,
+            memory,
+            quality,
+        };
+    }
+
+    static recommendedChunkSize() {
+        const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        const downlink = conn && typeof conn.downlink === 'number' ? conn.downlink : 0;
+        const saveData = !!(conn && conn.saveData);
+        const memory = typeof navigator.deviceMemory === 'number' ? navigator.deviceMemory : 4;
+
+        if (saveData || downlink > 0 && downlink < 2 || memory <= 2) return 16384;
+        if (downlink > 0 && downlink < 5) return 32768;
+        return DEFAULT_CHUNK_SIZE;
+    }
+
+    static recommendedMaxBuffer() {
+        const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        const saveData = !!(conn && conn.saveData);
+        const memory = typeof navigator.deviceMemory === 'number' ? navigator.deviceMemory : 4;
+
+        if (saveData || memory <= 2) return 1 * 1024 * 1024;
+        if (memory <= 4) return 2 * 1024 * 1024;
+        return DEFAULT_MAX_BUFFER;
     }
 
     static generateCode() {
@@ -66,7 +115,11 @@ class NexTransfer extends EventTarget {
         this.role = 'sender'; this.files = Array.from(files);
         const code = NexTransfer.generateCode();
         this.peer = new Peer(PEER_PREFIX + code, this._cfg());
-        this.peer.on('open', () => { this._emit('code', { code }); this._startExpiry(); });
+        this.peer.on('open', () => {
+            this._emit('network-profile', this.networkProfile);
+            this._emit('code', { code });
+            this._startExpiry();
+        });
         this.peer.on('connection', conn => {
             if (this.conn) { conn.close(); return; }
             this.conn = conn; this._onSenderConn(conn);
@@ -81,6 +134,7 @@ class NexTransfer extends EventTarget {
         conn.on('open', () => {
             this._clearExpiry();
             this._emit('status', { state: 'connected', message: 'Pair connecté' });
+            this._emit('network-profile', this.networkProfile);
             conn.send({
                 type: 'meta',
                 files: this.files.map(f => ({ name: f.name, size: f.size, fileType: f.type })),
@@ -91,7 +145,12 @@ class NexTransfer extends EventTarget {
             if (msg && msg.type === 'accept') this._doSend();
             if (msg && msg.type === 'reject') { this._emit('status', { state: 'rejected', message: 'Refusé par le destinataire' }); this.destroy(); }
         });
-        conn.on('close', () => this._emit('status', { state: 'disconnected', message: 'Connexion fermée' }));
+        conn.on('close', () => {
+            this.conn = null;
+            if (!this._transferDone) {
+                this._emit('status', { state: 'disconnected', message: 'Connexion interrompue, nouvelle connexion possible.' });
+            }
+        });
         conn.on('error', err => this._emit('error', { message: this._fmtErr(err) }));
     }
 
@@ -104,10 +163,10 @@ class NexTransfer extends EventTarget {
             this._emit('file-start', { index: i, name: file.name, size: file.size });
             this.conn.send({ type: 'file-start', index: i, name: file.name, size: file.size, fileType: file.type });
             const buffer = await file.arrayBuffer();
-            const totalChunks = Math.ceil(buffer.byteLength / CHUNK_SIZE);
+            const totalChunks = Math.ceil(buffer.byteLength / this.chunkSize);
             for (let c = 0; c < totalChunks; c++) {
                 await this._awaitBuf();
-                const slice = buffer.slice(c * CHUNK_SIZE, (c + 1) * CHUNK_SIZE);
+                const slice = buffer.slice(c * this.chunkSize, (c + 1) * this.chunkSize);
                 this.conn.send({ type: 'chunk', index: i, chunkIndex: c, totalChunks, data: new Uint8Array(slice) });
                 totalSent += slice.byteLength;
                 const elapsed = (Date.now() - tStart) / 1000 || 0.001;
@@ -131,7 +190,7 @@ class NexTransfer extends EventTarget {
         return new Promise(resolve => {
             const check = () => {
                 const dc = this.conn && this.conn.dataChannel;
-                if (!dc || dc.bufferedAmount < MAX_BUFFER) return resolve();
+                if (!dc || dc.bufferedAmount < this.maxBuffer) return resolve();
                 setTimeout(check, 50);
             };
             check();
@@ -144,6 +203,7 @@ class NexTransfer extends EventTarget {
         this.peer = new Peer(this._cfg());
         this.peer.on('open', () => {
             this._emit('status', { state: 'connecting', message: 'Connexion en cours…' });
+            this._emit('network-profile', this.networkProfile);
             this.conn = this.peer.connect(PEER_PREFIX + code.trim().toUpperCase(), { reliable: true });
             this._onReceiverConn(this.conn);
         });

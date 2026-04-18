@@ -18,6 +18,7 @@
 
     <!-- App styles -->
     <link rel="stylesheet" href="css/style.css">
+    <link rel="manifest" href="manifest.webmanifest">
 
     <!-- PeerJS — WebRTC signaling -->
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
@@ -32,6 +33,63 @@
 
 <!-- Toast notifications -->
 <div id="toast-container" class="toast-container"></div>
+
+<!-- Session banner -->
+<div id="session-banner" class="session-banner state-idle" role="status" aria-live="polite" aria-atomic="true">
+    <div class="container session-banner-inner">
+        <span id="session-badge" class="session-badge">Inactif</span>
+        <div class="session-meta">
+            <span id="session-text">Prêt à lancer un transfert.</span>
+            <span id="session-hint" class="session-hint">Choisissez Envoyer ou Recevoir.</span>
+        </div>
+        <div id="network-quality" class="network-quality quality-medium" aria-live="polite">
+            <span class="network-quality-label">Réseau: moyen</span>
+            <span class="network-bars" aria-hidden="true">
+                <i></i><i></i><i></i>
+            </span>
+            <button id="network-quality-info" class="network-quality-info hidden" type="button" aria-label="Pourquoi cette qualité réseau" title="Qualité réseau détectée automatiquement.">
+                <i class="bi bi-info-circle"></i>
+            </button>
+        </div>
+        <label class="compat-toggle" for="compat-mode-toggle" title="Réduit le débit pour améliorer la stabilité réseau">
+            <input id="compat-mode-toggle" type="checkbox" />
+            <span>Compatibilité</span>
+        </label>
+        <button id="reconnect-now-btn" class="btn btn-primary btn-compact hidden" type="button" aria-label="Reconnecter maintenant">
+            <i class="bi bi-arrow-repeat"></i>
+            Reconnecter maintenant
+        </button>
+        <button id="copy-diagnostics-btn" class="btn btn-secondary btn-compact" type="button" aria-label="Copier les diagnostics">
+            <i class="bi bi-clipboard-data"></i>
+            Diagnostics
+        </button>
+    </div>
+</div>
+
+<div id="debug-panel" class="debug-panel hidden" aria-hidden="true">
+    <div class="debug-card" role="dialog" aria-modal="true" aria-labelledby="debug-title">
+        <div class="debug-head">
+            <h3 id="debug-title">Diagnostics NexShare</h3>
+            <button id="debug-close" class="btn btn-secondary btn-compact" type="button" aria-label="Fermer les diagnostics">
+                <i class="bi bi-x-lg"></i>
+                Fermer
+            </button>
+        </div>
+        <div class="debug-summary" id="debug-summary">Aucun événement.</div>
+        <div class="debug-throughput">
+            <div class="debug-throughput-head">
+                <span>Débit (30s)</span>
+                <span id="debug-throughput-meta" class="debug-throughput-meta">--</span>
+            </div>
+            <canvas id="debug-throughput-chart" aria-label="Graphe de débit des 30 dernières secondes"></canvas>
+        </div>
+        <div class="debug-list" id="debug-list"></div>
+        <div class="debug-actions">
+            <button id="debug-copy" class="btn btn-primary" type="button"><i class="bi bi-copy"></i> Copier</button>
+            <button id="debug-clear" class="btn btn-danger" type="button"><i class="bi bi-trash3"></i> Vider</button>
+        </div>
+    </div>
+</div>
 
 <!-- ══ HEADER ══════════════════════════════════════════ -->
 <header>
@@ -86,10 +144,14 @@
 <!-- ══ TRANSFER ════════════════════════════════════════ -->
 <section class="transfer-section" id="transfer">
     <div class="container">
+        <div class="mobile-action-tabs" role="tablist" aria-label="Choix du panneau mobile">
+            <button id="tab-send" class="mobile-tab active" type="button" role="tab" aria-selected="true" aria-controls="sender-panel">Envoyer</button>
+            <button id="tab-receive" class="mobile-tab" type="button" role="tab" aria-selected="false" aria-controls="receiver-panel">Recevoir</button>
+        </div>
         <div class="transfer-grid">
 
             <!-- ── Sender panel ────────────────────── -->
-            <div class="glass-card sender-card">
+            <div class="glass-card sender-card" id="sender-panel" role="tabpanel" aria-labelledby="tab-send" aria-busy="false">
                 <div class="panel-title">
                     <i class="bi bi-upload"></i>
                     Envoyer des fichiers
@@ -137,13 +199,14 @@
                                     <i class="bi bi-copy"></i> Code seul
                                 </button>
                             </div>
+                            <div class="session-proof" id="session-fingerprint" aria-live="polite">Empreinte session: ---- ----</div>
                         </div>
                         <div id="qr-container">
                             <canvas id="qr-canvas"></canvas>
                         </div>
                         <div class="status-row">
                             <div class="status-dot waiting" id="status-dot"></div>
-                            <span id="status-text">Initialisation…</span>
+                            <span id="status-text" aria-live="polite">Initialisation…</span>
                         </div>
                         <div class="expiry-bar">
                             <div class="expiry-fill" id="expiry-fill" style="width:100%"></div>
@@ -163,7 +226,7 @@
             </div>
 
             <!-- ── Receiver panel ───────────────────── -->
-            <div class="glass-card receiver-card">
+            <div class="glass-card receiver-card" id="receiver-panel" role="tabpanel" aria-labelledby="tab-receive">
                 <div class="panel-title">
                     <i class="bi bi-download"></i>
                     Recevoir des fichiers
@@ -187,6 +250,7 @@
                         <i class="bi bi-plug"></i> Connecter
                     </button>
                 </div>
+                <div id="recv-fingerprint" class="session-proof hidden" aria-live="polite">Empreinte session: ---- ----</div>
 
                 <div id="recv-area"></div>
 
