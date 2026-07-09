@@ -1,5 +1,5 @@
 ﻿<div align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=custom&customColorList=8a2be2&height=200&section=header&text=NexShare&fontSize=70&fontAlignY=40&animation=twinkling&desc=Transfert%20WebRTC%20Ultra-Rapide&descAlignY=60&descAlign=50" alt="Header" />
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:7b2cbf,100:c77dff&height=200&section=header&text=NexShare&fontSize=70&fontAlignY=40&animation=twinkling&desc=Transfert%20WebRTC%20Ultra-Rapide&descAlignY=60&descAlign=50" alt="Header" />
 </div>
 
 <h3 align="center">ðŸš€ Web app de transfert P2P (WebRTC) avec code de partage, QR code et interface futuriste.</h3>
@@ -7,7 +7,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" />
   <img src="https://img.shields.io/badge/WebRTC-333333?style=for-the-badge&logo=webrtc&logoColor=white" />
-  <img src="https://img.shields.io/github/repo-size/nexos20lv/NexShare?color=custom&customColorList=8a2be2&style=for-the-badge" />
+  <img src="https://img.shields.io/github/repo-size/nexos20lv/NexShare?color=0:7b2cbf,100:c77dff&style=for-the-badge" />
 </p>
 
 ## ðŸ’œ FonctionnalitÃ©s Principales
