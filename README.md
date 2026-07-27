@@ -1,22 +1,69 @@
-﻿<div align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:7b2cbf,100:c77dff&height=200&section=header&text=NexShare&fontSize=70&fontAlignY=40&animation=twinkling&desc=Transfert%20WebRTC%20Ultra-Rapide&descAlignY=60&descAlign=50" alt="Header" />
+<div align="center">
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:7b2cbf,100:c77dff&height=200&section=header&text=NexShare&fontSize=65&fontAlignY=40&animation=twinkling&desc=Transfert%20de%20Fichiers%20P2P%20Ultra-Rapide%20via%20WebRTC&descAlignY=60&descAlign=50" alt="NexShare Banner" />
+
+  <p align="center">
+    <a href="https://btmpierre.me/NexShare/">
+      <img src="https://img.shields.io/badge/Live_Demo-btmpierre.me%2FNexShare-7b2cbf?style=for-the-badge&logo=firefox&logoColor=white" alt="Live Demo">
+    </a>
+    <img src="https://img.shields.io/badge/WebRTC-P2P_Direct-333333?style=for-the-badge&logo=webrtc&logoColor=white" alt="WebRTC">
+    <img src="https://img.shields.io/badge/No_Server_Storage-100%25_Private-2ECC71?style=for-the-badge" alt="Privacy">
+    <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" alt="License">
+  </p>
+
+  <p align="center">
+    <b>Partagez des fichiers de n'importe quelle taille directement d'appareil à appareil, sans passer par un serveur intermédiaire.</b>
+  </p>
 </div>
 
-<h3 align="center">ðŸš€ Web app de transfert P2P (WebRTC) avec code de partage, QR code et interface futuriste.</h3>
+---
 
-<p align="center">
-  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" />
-  <img src="https://img.shields.io/badge/WebRTC-333333?style=for-the-badge&logo=webrtc&logoColor=white" />
-  <img src="https://img.shields.io/github/repo-size/nexos20lv/NexShare?color=0:7b2cbf,100:c77dff&style=for-the-badge" />
-</p>
+## 📖 À propos de NexShare
 
-## ðŸ’œ FonctionnalitÃ©s Principales
-- **P2P direct** : Transfert de fichiers de pair-Ã -pair sans stockage sur serveur.
-- **Ultra-rapide** : Utilise le protocole WebRTC pour une vitesse maximale.
-- **QR Code & Code court** : Partagez facilement le lien avec vos amis.
-- **Design Futuriste** : Une interface utilisateur sombre, Ã©lÃ©gante et immersive aux teintes violettes.
+**NexShare** est une application web moderne et futuriste de partage de fichiers en Peer-to-Peer (P2P). En s'appuyant sur le protocole **WebRTC DataChannel**, vos données sont transférées directement entre l'expéditeur et le destinataire avec le débit maximal admissible par votre connexion internet.
 
-## ðŸ› ï¸ Installation & Lancement
-1. Clonez ce dÃ©pÃ´t.
-2. Ouvrez le fichier index.html dans votre navigateur (ou servez-le via un petit serveur web type Live Server).
-3. Connectez-vous avec un autre appareil et transfÃ©rez vos fichiers !
+---
+
+## ✨ Fonctionnalités Principales
+
+- ⚡ **Transfert P2P Direct :** Fichiers transmis en direct sans stockage temporaire sur serveur cloud. Pas de limite de taille de fichier !
+- 🔐 **Confidentialité Totale :** Vos fichiers restent privés. La connexion est chiffrée de bout en bout par WebRTC (DTLS/SRTP).
+- 📲 **Connexion Rapide par QR Code & Code Court :** Génération automatique d'un QR code et d'un identifiant à 6 chiffres pour appairer les appareils instantanément.
+- 🎨 **Interface Futuriste & Dark Mode :** Design réactif, animations fluides et thématique sombre violette.
+- 🌐 **Zéro Installation :** Fonctionne directement dans tous les navigateurs modernes (Chrome, Firefox, Safari, Edge, Mobile).
+
+---
+
+## 🚀 Démo en Ligne
+
+Testez directement l'application sur le serveur de démonstration :
+👉 **[https://btmpierre.me/NexShare/](https://btmpierre.me/NexShare/)**
+
+---
+
+## 🛠️ Stack Technique
+
+- **Frontend :** HTML5, CSS3 Vanilla (Design customisé), JavaScript ES6+
+- **Protocole P2P :** WebRTC DataChannel API
+- **Appairage :** Serveur de signalement WebSockets léger pour l'échange d'offres SDP/ICE
+- **Génération QR Code :** QRCode.js
+
+---
+
+## ⚙️ Lancement Local
+
+1. Clonez le dépôt git :
+   ```bash
+   git clone https://github.com/nexos20lv/NexShare.git
+   cd NexShare
+   ```
+2. Lancez un serveur web local (par exemple avec VS Code Live Server ou Python) :
+   ```bash
+   python3 -m http.server 8080
+   ```
+3. Ouvrez `http://localhost:8080` sur vos appareils et commencez à transférer !
+
+---
+
+## 📄 Licence
+
+Projet distribué sous licence **MIT**. Consulter [LICENSE](LICENSE) pour plus d'informations.
