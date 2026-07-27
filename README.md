@@ -1,5 +1,5 @@
 <div align="center">
-  ![NexShare Banner](https://capsule-render.vercel.app/api?type=waving&color=0:7b2cbf,100:c77dff&height=200&section=header&text=NexShare&fontSize=65&fontAlignY=40&animation=twinkling&desc=Transfert%20de%20Fichiers%20P2P%20Ultra-Rapide%20via%20WebRTC&descAlignY=60&descAlign=50&fontColor=ffffff)
+  ![NexShare Banner](https://capsule-render.vercel.app/api?type=waving&color=0:7b2cbf,100:c77dff&height=200&section=header&text=NexShare&fontSize=65&fontAlignY=40&animation=twinkling&desc=Transfert%20de%20Fichiers%20P2P%20Ultra-Rapide%20via%20WebRTC&descAlignY=60&descAlign=50)
 
   <p align="center">
     <a href="https://btmpierre.me/NexShare/">
