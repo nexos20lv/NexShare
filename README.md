@@ -1,11 +1,11 @@
 <div align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&amp;color=0:7b2cbf,100:c77dff&amp;height=200&amp;section=header&amp;text=NexShare&amp;fontSize=65&amp;fontAlignY=40&amp;animation=twinkling&amp;desc=Transfert%20de%20Fichiers%20P2P%20Ultra-Rapide%20via%20WebRTC&amp;descAlignY=60&amp;descAlign=50&amp;fontColor=ffffff" alt="NexShare Banner" />
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:7b2cbf,100:c77dff&height=200&section=header&text=NexShare&fontSize=65&fontAlignY=40&animation=twinkling&desc=Transfert%20de%20Fichiers%20P2P%20Ultra-Rapide%20via%20WebRTC&descAlignY=60&descAlign=50&fontColor=ffffff" alt="NexShare Banner" />
 
   <p align="center">
     <a href="https://btmpierre.me/NexShare/">
-      <img src="https://img.shields.io/badge/Live_Demo-btmpierre.me%2FNexShare-7b2cbf?style=for-the-badge&amp;logo=firefox&amp;logoColor=white" alt="Live Demo" />
+      <img src="https://img.shields.io/badge/Live_Demo-btmpierre.me%2FNexShare-7b2cbf?style=for-the-badge&logo=firefox&logoColor=white" alt="Live Demo" />
     </a>
-    <img src="https://img.shields.io/badge/WebRTC-P2P_Direct-333333?style=for-the-badge&amp;logo=webrtc&amp;logoColor=white" alt="WebRTC" />
+    <img src="https://img.shields.io/badge/WebRTC-P2P_Direct-333333?style=for-the-badge&logo=webrtc&logoColor=white" alt="WebRTC" />
     <img src="https://img.shields.io/badge/No_Server_Storage-100%25_Private-2ECC71?style=for-the-badge" alt="Privacy" />
     <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" alt="License" />
   </p>
